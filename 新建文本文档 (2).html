@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>匹克球赛事管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #1e6bb9;
+            --secondary-color: #2c8ae7;
+            --accent-color: #ff6b35;
+            --light-color: #f5f9ff;
+            --dark-color: #333;
+            --gray-color: #eee;
+            --border-color: #ddd;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 头部样式 */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            color: var(--primary-color);
+            font-size: 32px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .logo span {
+            color: var(--accent-color);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 600;
+            font-size: 17px;
+            padding: 5px 0;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        nav a.active {
+            color: var(--primary-color);
+        }
+        
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            padding: 40px 0;
+            min-height: calc(100vh - 150px);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h2 {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* 选项卡样式 */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 赛程表样式 */
+        .schedule-table, .standings-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: var(--light-color);
+        }
+        
+        td {
+            padding: 16px 15px;
+        }
+        
+        .match-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status-upcoming {
+            background-color: #e8f4ff;
+            color: var(--primary-color);
+        }
+        
+        .status-in-progress {
+            background-color: #fff5e6;
+            color: #e68a00;
+        }
+        
+        .status-completed {
+            background-color: #e6ffe6;
+            color: #00a300;
+        }
+        
+        /* 上传区域样式 */
+        .upload-section {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: var(--light-color);
+        }
+        
+        .upload-area i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .upload-area h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+        
+        .upload-area p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-info {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 管理员面板 */
+        .admin-panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-header h3 {
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+        
+        .admin-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 15px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--light-color);
+        }
+        
+        /* 通知消息 */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification i {
+            font-size: 22px;
+        }
+        
+        .notification.success {
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .notification.success i {
+            color: #4CAF50;
+        }
+        
+        .notification.error {
+            border-left: 5px solid #f44336;
+        }
+        
+        .notification.error i {
+            color: #f44336;
+        }
+        
+        /* 页脚 */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-logo i {
+            font-size: 28px;
+        }
+        
+        .footer-logo h3 {
+            font-size: 20px;
+        }
+        
+        .copyright {
+            text-align: center;
+            width: 100%;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+            }
+            
+            nav {
+                display: none;
+                width: 100%;
+                margin-top: 15px;
+            }
+            
+            nav.active {
+                display: block;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .admin-btn {
+                width: 100%;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .page-header h2 {
+                font-size: 26px;
+            }
+            
+            .upload-section, .admin-panel {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-table-tennis-paddle-ball"></i>
+                    <h1>匹克球<span>赛事</span></h1>
+                </div>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <nav id="mainNav">
+                    <ul>
+                        <li><a href="#" class="active" data-tab="schedule">赛程表</a></li>
+                        <li><a href="#" data-tab="standings">积分表</a></li>
+                        <li><a href="#" data-tab="upload-schedule">上传赛程</a></li>
+                        <li><a href="#" data-tab="upload-standings">上传积分表</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="container">
+            <!-- 赛程表页面 -->
+            <div class="tab-content active" id="schedule">
+                <div class="page-header">
+                    <h2>赛事赛程表</h2>
+                    <p>2024年匹克球锦标赛最新赛程安排</p>
+                </div>
+                
+                <div class="schedule-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>比赛日期</th>
+                                <th>时间</th>
+                                <th>比赛类型</th>
+                                <th>参赛选手/队伍</th>
+                                <th>比赛场地</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody">
+                            <!-- 赛程数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 积分表页面 -->
+            <div class="tab-content" id="standings">
+                <div class="page-header">
+                    <h2>选手积分表</h2>
+                    <p>2024年匹克球锦标赛选手积分排名</p>
+                </div>
+                
+                <div class="standings-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>选手姓名</th>
+                                <th>参赛项目</th>
+                                <th>胜场</th>
+                                <th>负场</th>
+                                <th>积分</th>
+                                <th>胜率</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standingsTableBody">
+                            <!-- 积分数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 上传赛程页面 -->
+            <div class="tab-content" id="upload-schedule">
+                <div class="page-header">
+                    <h2>上传赛程表</h2>
+                    <p>上传新的赛事赛程表文件（支持CSV、Excel格式）</p>
+                </div>
+                
+                <div class="upload-section">
+                    <div class="admin-header">
+                        <h3>上传赛程文件</h3>
+                        <div class="admin-controls">
+                            <button class="admin-btn btn-secondary" id="downloadTemplate">
+                                <i class="fas fa-download"></i> 下载模板
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-area" id="scheduleUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>拖拽文件到这里或点击上传</h3>
+                        <p>支持 .csv, .xlsx, .xls 格式，文件大小不超过10MB</p>
+                        <button class="upload-btn" id="scheduleSelectBtn">选择文件</button>
+                        <input type="file" class="file-input" id="scheduleFileInput" accept=".csv,.xlsx,.xls">
+                        <div class="upload-info" id="scheduleFileInfo">尚未选择文件</div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="admin-btn btn-primary" id="uploadScheduleBtn">
+                            <i class="fas fa-upload"></i> 上传赛程表
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 上传积分表页面 -->
+            <div class="tab-content" id="upload-standings">
+                <div class="page-header">
+                    <h2>上传积分表</h2>
+                    <p>上传新的选手积分表文件（支持CSV、Excel格式）</p>
+                </div>
+                
+                <div class="upload-section">
+                    <div class="admin-header">
+                        <h3>上传积分文件</h3>
+                        <div class="admin-controls">
+                            <button class="admin-btn btn-secondary" id="downloadStandingsTemplate">
+                                <i class="fas fa-download"></i> 下载模板
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-area" id="standingsUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>拖拽文件到这里或点击上传</h3>
+                        <p>支持 .csv, .xlsx, .xls 格式，文件大小不超过10MB</p>
+                        <button class="upload-btn" id="standingsSelectBtn">选择文件</button>
+                        <input type="file" class="file-input" id="standingsFileInput" accept=".csv,.xlsx,.xls">
+                        <div class="upload-info" id="standingsFileInfo">尚未选择文件</div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="admin-btn btn-primary" id="uploadStandingsBtn">
+                            <i class="fas fa-upload"></i> 上传积分表
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 管理员面板 -->
+            <div class="admin-panel">
+                <div class="admin-header">
+                    <h3>数据管理</h3>
+                    <div class="admin-controls">
+                        <button class="admin-btn btn-secondary" id="clearDataBtn">
+                            <i class="fas fa-trash-alt"></i> 清除所有数据
+                        </button>
+                        <button class="admin-btn btn-primary" id="loadSampleBtn">
+                            <i class="fas fa-database"></i> 加载示例数据
+                        </button>
+                    </div>
+                </div>
+                <p>此面板用于演示数据管理功能。在实际应用中，这些操作将连接到后端数据库。</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 通知消息 -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationMessage">操作成功完成！</span>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-table-tennis-paddle-ball"></i>
+                    <h3>匹克球赛事管理系统</h3>
+                </div>
+                <div>
+                    <p>© 2024 匹克球赛事管理系统 版权所有</p>
+                </div>
+                <div class="copyright">
+                    <p>本系统用于匹克球赛事赛程和积分发布与管理 | 技术支持: info@pickleball.com</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 初始数据
+        let scheduleData = [
+            { date: "2024-08-15", time: "09:00", type: "男子单打", participants: "张三 vs 李四", venue: "中央球场 1号", status: "completed" },
+            { date: "2024-08-15", time: "10:30", type: "女子单打", participants: "王五 vs 赵六", venue: "中央球场 2号", status: "completed" },
+            { date: "2024-08-16", time: "14:00", type: "混合双打", participants: "张三/王五 vs 李四/赵六", venue: "中央球场 1号", status: "in-progress" },
+            { date: "2024-08-16", time: "16:30", type: "男子双打", participants: "陈七/孙八 vs 周九/吴十", venue: "中央球场 2号", status: "upcoming" },
+            { date: "2024-08-17", time: "09:00", type: "女子双打", participants: "刘一/郑二 vs 钱三/冯四", venue: "中央球场 1号", status: "upcoming" },
+            { date: "2024-08-17", time: "13:00", type: "男子单打", participants: "陈七 vs 孙八", venue: "中央球场 2号", status: "upcoming" },
+            { date: "2024-08-18", time: "10:00", type: "混合双打", participants: "半决赛胜者A vs 半决赛胜者B", venue: "中央球场 1号", status: "upcoming" },
+            { date: "2024-08-18", time: "15:00", type: "男子单打", participants: "决赛选手A vs 决赛选手B", venue: "中央球场 1号", status: "upcoming" }
+        ];
+        
+        let standingsData = [
+            { rank: 1, name: "张三", event: "男子单打", wins: 5, losses: 1, points: 125, winRate: "83.3%" },
+            { rank: 2, name: "李四", event: "男子单打", wins: 4, losses: 2, points: 110, winRate: "66.7%" },
+            { rank: 3, name: "王五", event: "女子单打", wins: 6, losses: 0, points: 150, winRate: "100%" },
+            { rank: 4, name: "赵六", event: "女子单打", wins: 4, losses: 2, points: 108, winRate: "66.7%" },
+            { rank: 5, name: "陈七", event: "男子双打", wins: 3, losses: 3, points: 95, winRate: "50%" },
+            { rank: 6, name: "孙八", event: "男子双打", wins: 3, losses: 3, points: 92, winRate: "50%" },
+            { rank: 7, name: "周九", event: "混合双打", wins: 5, losses: 1, points: 120, winRate: "83.3%" },
+            { rank: 8, name: "吴十", event: "混合双打", wins: 4, losses: 2, points: 105, winRate: "66.7%" }
+        ];
+        
+        // DOM元素
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mainNav = document.getElementById('mainNav');
+        const navLinks = document.querySelectorAll('nav a');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const scheduleTableBody = document.getElementById('scheduleTableBody');
+        const standingsTableBody = document.getElementById('standingsTableBody');
+        const scheduleUploadArea = document.getElementById('scheduleUploadArea');
+        const standingsUploadArea = document.getElementById('standingsUploadArea');
+        const scheduleFileInput = document.getElementById('scheduleFileInput');
+        const standingsFileInput = document.getElementById('standingsFileInput');
+        const scheduleSelectBtn = document.getElementById('scheduleSelectBtn');
+        const standingsSelectBtn = document.getElementById('standingsSelectBtn');
+        const scheduleFileInfo = document.getElementById('scheduleFileInfo');
+        const standingsFileInfo = document.getElementById('standingsFileInfo');
+        const uploadScheduleBtn = document.getElementById('uploadScheduleBtn');
+        const uploadStandingsBtn = document.getElementById('uploadStandingsBtn');
+        const downloadTemplateBtn = document.getElementById('downloadTemplate');
+        const downloadStandingsTemplateBtn = document.getElementById('downloadStandingsTemplate');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const loadSampleBtn = document.getElementById('loadSampleBtn');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载初始数据
+            loadScheduleData();
+            loadStandingsData();
+            
+            // 设置导航点击事件
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新导航状态
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新内容显示
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // 移动端菜单关闭
+                    if (window.innerWidth <= 768) {
+                        mainNav.classList.remove('active');
+                    }
+                });
+            });
+            
+            // 移动端菜单切换
+            mobileMenuBtn.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+            });
+            
+            // 赛程上传区域事件
+            scheduleSelectBtn.addEventListener('click', function() {
+                scheduleFileInput.click();
+            });
+            
+            scheduleFileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    scheduleFileInfo.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                    scheduleUploadArea.classList.add('dragover');
+                    setTimeout(() => scheduleUploadArea.classList.remove('dragover'), 1000);
+                }
+            });
+            
+            scheduleUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            scheduleUploadArea.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            scheduleUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    scheduleFileInput.files = e.dataTransfer.files;
+                    scheduleFileInfo.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                }
+            });
+            
+            // 积分上传区域事件
+            standingsSelectBtn.addEventListener('click', function() {
+                standingsFileInput.click();
+            });
+            
+            standingsFileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    standingsFileInfo.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                    standingsUploadArea.classList.add('dragover');
+                    setTimeout(() => standingsUploadArea.classList.remove('dragover'), 1000);
+                }
+            });
+            
+            standingsUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            standingsUploadArea.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            standingsUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    standingsFileInput.files = e.dataTransfer.files;
+                    standingsFileInfo.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                }
+            });
+            
+            // 上传按钮事件
+            uploadScheduleBtn.addEventListener('click', function() {
+                if (scheduleFileInput.files.length === 0) {
+                    showNotification('请先选择要上传的赛程文件', 'error');
+                    return;
+                }
+                
+                // 模拟上传过程
+                showNotification('正在上传赛程表文件...', 'success');
+                
+                // 模拟上传成功后的数据更新
+                setTimeout(() => {
+                    // 这里实际应该解析上传的文件并更新数据
+                    // 现在只是添加一条示例数据
+                    const newMatch = {
+                        date: "2024-08-19",
+                        time: "11:00",
+                        type: "新增比赛",
+                        participants: "新选手A vs 新选手B",
+                        venue: "新增球场",
+                        status: "upcoming"
+                    };
+                    
+                    scheduleData.push(newMatch);
+                    loadScheduleData();
+                    
+                    showNotification('赛程表上传成功并已更新！', 'success');
+                    scheduleFileInfo.textContent = '尚未选择文件';
+                    scheduleFileInput.value = '';
+                }, 1500);
+            });
+            
+            uploadStandingsBtn.addEventListener('click', function() {
+                if (standingsFileInput.files.length === 0) {
+                    showNotification('请先选择要上传的积分文件', 'error');
+                    return;
+                }
+                
+                // 模拟上传过程
+                showNotification('正在上传积分表文件...', 'success');
+                
+                // 模拟上传成功后的数据更新
+                setTimeout(() => {
+                    // 这里实际应该解析上传的文件并更新数据
+                    // 现在只是添加一条示例数据
+                    const newPlayer = {
+                        rank: standingsData.length + 1,
+                        name: "新选手",
+                        event: "新增项目",
+                        wins: 2,
+                        losses: 1,
+                        points: 60,
+                        winRate: "66.7%"
+                    };
+                    
+                    standingsData.push(newPlayer);
+                    loadStandingsData();
+                    
+                    showNotification('积分表上传成功并已更新！', 'success');
+                    standingsFileInfo.textContent = '尚未选择文件';
+                    standingsFileInput.value = '';
+                }, 1500);
+            });
+            
+            // 下载模板按钮
+            downloadTemplateBtn.addEventListener('click', function() {
+                showNotification('赛程表模板下载开始...', 'success');
+                // 实际应用中这里应该触发文件下载
+            });
+            
+            downloadStandingsTemplateBtn.addEventListener('click', function() {
+                showNotification('积分表模板下载开始...', 'success');
+                // 实际应用中这里应该触发文件下载
+            });
+            
+            // 数据管理按钮
+            clearDataBtn.addEventListener('click', function() {
+                if (confirm('确定要清除所有数据吗？此操作不可撤销。')) {
+                    scheduleData = [];
+                    standingsData = [];
+                    loadScheduleData();
+                    loadStandingsData();
+                    showNotification('所有数据已清除', 'success');
+                }
+            });
+            
+            loadSampleBtn.addEventListener('click', function() {
+                // 重置为初始数据
+                scheduleData = [
+                    { date: "2024-08-15", time: "09:00", type: "男子单打", participants: "张三 vs 李四", venue: "中央球场 1号", status: "completed" },
+                    { date: "2024-08-15", time: "10:30", type: "女子单打", participants: "王五 vs 赵六", venue: "中央球场 2号", status: "completed" },
+                    { date: "2024-08-16", time: "14:00", type: "混合双打", participants: "张三/王五 vs 李四/赵六", venue: "中央球场 1号", status: "in-progress" },
+                    { date: "2024-08-16", time: "16:30", type: "男子双打", participants: "陈七/孙八 vs 周九/吴十", venue: "中央球场 2号", status: "upcoming" },
+                    { date: "2024-08-17", time: "09:00", type: "女子双打", participants: "刘一/郑二 vs 钱三/冯四", venue: "中央球场 1号", status: "upcoming" }
+                ];
+                
+                standingsData = [
+                    { rank: 1, name: "张三", event: "男子单打", wins: 5, losses: 1, points: 125, winRate: "83.3%" },
+                    { rank: 2, name: "李四", event: "男子单打", wins: 4, losses: 2, points: 110, winRate: "66.7%" },
+                    { rank: 3, name: "王五", event: "女子单打", wins: 6, losses: 0, points: 150, winRate: "100%" },
+                    { rank: 4, name: "赵六", event: "女子单打", wins: 4, losses: 2, points: 108, winRate: "66.7%" },
+                    { rank: 5, name: "陈七", event: "男子双打", wins: 3, losses: 3, points: 95, winRate: "50%" }
+                ];
+                
+                loadScheduleData();
+                loadStandingsData();
+                showNotification('示例数据已加载', 'success');
+            });
+        });
+        
+        // 加载赛程数据到表格
+        function loadScheduleData() {
+            scheduleTableBody.innerHTML = '';
+            
+            if (scheduleData.length === 0) {
+                scheduleTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-calendar-times" style="font-size: 48px; margin-bottom: 15px; display: block; color: #ccc;"></i>
+                            <p>暂无赛程数据</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            scheduleData.forEach(match => {
+                let statusText, statusClass;
+                switch(match.status) {
+                    case 'completed':
+                        statusText = '已结束';
+                        statusClass = 'status-completed';
+                        break;
+                    case 'in-progress':
+                        statusText = '进行中';
+                        statusClass = 'status-in-progress';
+                        break;
+                    case 'upcoming':
+                        statusText = '即将开始';
+                        statusClass = 'status-upcoming';
+                        break;
+                    default:
+                        statusText = '未知';
+                        statusClass = 'status-upcoming';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${match.date}</td>
+                    <td>${match.time}</td>
+                    <td>${match.type}</td>
+                    <td>${match.participants}</td>
+                    <td>${match.venue}</td>
+                    <td><span class="match-status ${statusClass}">${statusText}</span></td>
+                `;
+                scheduleTableBody.appendChild(row);
+            });
+        }
+        
+        // 加载积分数据到表格
+        function loadStandingsData() {
+            standingsTableBody.innerHTML = '';
+            
+            if (standingsData.length === 0) {
+                standingsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 15px; display: block; color: #ccc;"></i>
+                            <p>暂无积分数据</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            standingsData.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${player.rank}</td>
+                    <td><strong>${player.name}</strong></td>
+                    <td>${player.event}</td>
+                    <td>${player.wins}</td>
+                    <td>${player.losses}</td>
+                    <td><strong>${player.points}</strong></td>
+                    <td>${player.winRate}</td>
+                `;
+                standingsTableBody.appendChild(row);
+            });
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notificationMessage.textContent = message;
+            
+            // 设置通知类型
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            // 显示通知
+            notification.classList.add('show');
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
